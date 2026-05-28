@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Job Search Dashboard</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --color-primary: #1a1a1a;
+      --color-secondary: #4a4a4a;
+      --color-accent: #0066cc;
+      --color-accent-light: #e6f0ff;
+      --color-success: #2ecc71;
+      --color-warning: #f39c12;
+      --color-danger: #e74c3c;
+      --color-info: #3498db;
+      --color-border: #e0e0e0;
+      --color-bg: #ffffff;
+      --color-bg-alt: #f9f9f9;
+      --color-text: #333333;
+      --color-text-light: #666666;
+    }
+
+    body {
+      font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--color-bg-alt);
+      color: var(--color-text);
+      line-height: 1.6;
+    }
+
+    .container {
+      max-width: 1600px;
+      margin: 0 auto;
+      padding: 2rem;
+    }
+
+    header {
+      background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+      color: white;
+      padding: 2.5rem 2rem;
+      border-bottom: 3px solid var(--color-accent);
+      margin: -2rem -2rem 2rem -2rem;
+      border-radius: 0;
+    }
+
+    header h1 {
+      font-size: 2rem;
+      margin-bottom: 0.5rem;
+      font-weight: 700;
+    }
+
+    header p {
+      font-size: 0.95rem;
+      opacity: 0.9;
+      margin-bottom: 1.5rem;
+    }
+
+    .toolbar {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    button {
+      font-family: inherit;
+      padding: 0.65rem 1.25rem;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: 500;
+      font-size: 0.9rem;
+      transition: all 0.25s ease;
+    }
+
+    .btn-primary {
+      background: var(--color-accent);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: #0052a3;
+      box-shadow: 0 4px 12px rgba(0, 102, 204, 0.3);
+    }
+
+    .btn-secondary {
+      background: var(--color-bg);
+      color: var(--color-text);
+      border: 1px solid var(--color-border);
+    }
+
+    .btn-secondary:hover {
+      background: var(--color-bg-alt);
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1.5rem;
+      margin: 2rem 0;
+    }
+
+    .stat-card {
+      background: white;
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      padding: 1.5rem;
+      text-align: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+
+    .stat-number {
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: var(--color-accent);
+      margin: 0.5rem 0;
+    }
+
+    .stat-label {
+      font-size: 0.9rem;
+      color: var(--color-text-light);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .sheets-section {
+      margin-top: 3rem;
+    }
+
+    .sheets-section h2 {
+      font-size: 1.5rem;
+      margin-bottom: 1.5rem;
+      color: var(--color-text);
+    }
+
+    .sheets-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+      gap: 2rem;
+      margin-bottom: 2rem;
+    }
+
+    .sheet-container {
+      background: white;
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+
+    .sheet-title {
+      background: var(--color-bg-alt);
+      padding: 1rem;
+      border-bottom: 1px solid var(--color-border);
+      font-weight: 600;
+      color: var(--color-text);
+    }
+
+    .sheet-iframe {
+      width: 100%;
+      height: 500px;
+      border: none;
+    }
+
+    .last-sync {
+      font-size: 0.8rem;
+      color: var(--color-text-light);
+      margin-top: 1rem;
+    }
+
+    @media (max-width: 1024px) {
+      .sheets-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container">
+      <h1>Job Search Dashboard</h1>
+      <p>Your complete job search pipeline at a glance</p>
+      <div class="toolbar">
+        <button class="btn-primary" onclick="location.reload()">🔄 Refresh</button>
+      </div>
+      <div class="last-sync" id="lastSync"></div>
+    </div>
+  </header>
+
+  <div class="container">
+    <!-- Metrics Section -->
+    <div class="stats-grid" id="stats">
+      <div class="stat-card">
+        <div class="stat-label">Total Applications</div>
+        <div class="stat-number">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Active Opportunities</div>
+        <div class="stat-number">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Interviews Scheduled</div>
+        <div class="stat-number">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Offers Received</div>
+        <div class="stat-number">—</div>
+      </div>
+    </div>
+
+    <!-- Embedded Sheets Section -->
+    <div class="sheets-section">
+      <h2>📊 Live Data</h2>
+      <div class="sheets-grid">
+        <div class="sheet-container">
+          <div class="sheet-title">📋 Job Applications</div>
+          <div style="padding: 1rem; background: #f5f5f5; text-align: center;">
+            <p style="margin-bottom: 1rem; color: #666;">Open in Google Sheets:</p>
+            <a href="https://docs.google.com/spreadsheets/d/1_OavgT07buWqNwFbEjaASnoHbuD2a9c_41zNB4HFwtw/edit?usp=sharing" target="_blank" style="display: inline-block; padding: 0.75rem 1.5rem; background: #0066cc; color: white; text-decoration: none; border-radius: 4px; font-weight: 500;">Open Job Applications</a>
+          </div>
+        </div>
+        <div class="sheet-container">
+          <div class="sheet-title">🎤 Interview Tracking</div>
+          <div style="padding: 1rem; background: #f5f5f5; text-align: center;">
+            <p style="margin-bottom: 1rem; color: #666;">Open in Google Sheets:</p>
+            <a href="https://docs.google.com/spreadsheets/d/1pbMqmDIJbuhXfaSrLoNgM3hODfmA2vDjaG6jD468oqc/edit?usp=sharing" target="_blank" style="display: inline-block; padding: 0.75rem 1.5rem; background: #0066cc; color: white; text-decoration: none; border-radius: 4px; font-weight: 500;">Open Interview Tracking</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Update last sync time
+    function updateLastSync() {
+      const now = new Date().toLocaleTimeString();
+      document.getElementById('lastSync').textContent = `Last refreshed: ${now}`;
+    }
+
+    // Try to fetch and calculate metrics
+    async function updateMetrics() {
+      try {
+        // Use a CORS proxy to fetch the data
+        const corsProxy = 'https://cors-anywhere.herokuapp.com/';
+        const jobAppUrl = 'https://docs.google.com/spreadsheets/d/1_OavgT07buWqNwFbEjaASnoHbuD2a9c_41zNB4HFwtw/export?format=csv';
+        const interviewUrl = 'https://docs.google.com/spreadsheets/d/1pbMqmDIJbuhXfaSrLoNgM3hODfmA2vDjaG6jD468oqc/export?format=csv';
+
+        // Try to fetch data
+        let jobApps = 0;
+        let active = 0;
+        let interviews = 0;
+        let offers = 0;
+
+        try {
+          const jobResponse = await fetch(jobAppUrl);
+          if (jobResponse.ok) {
+            const csv = await jobResponse.text();
+            jobApps = csv.split('\n').length - 2; // Subtract header and empty
+            active += jobApps;
+          }
+        } catch (e) {
+          console.log('Could not fetch job applications data');
+        }
+
+        try {
+          const interviewResponse = await fetch(interviewUrl);
+          if (interviewResponse.ok) {
+            const csv = await interviewResponse.text();
+            interviews = csv.split('\n').length - 2;
+            // Count offers
+            const lines = csv.split('\n');
+            offers = lines.filter(line => line.includes('Offer')).length;
+            // Active = total - rejected/declined
+            active += interviews;
+          }
+        } catch (e) {
+          console.log('Could not fetch interview data');
+        }
+
+        // Update display
+        const cards = document.querySelectorAll('.stat-card');
+        if (cards[0]) cards[0].innerHTML = `<div class="stat-label">Total Applications</div><div class="stat-number">${jobApps + interviews}</div>`;
+        if (cards[1]) cards[1].innerHTML = `<div class="stat-label">Active Opportunities</div><div class="stat-number">${active - offers}</div>`;
+        if (cards[2]) cards[2].innerHTML = `<div class="stat-label">Interviews Scheduled</div><div class="stat-number">${interviews}</div>`;
+        if (cards[3]) cards[3].innerHTML = `<div class="stat-label">Offers Received</div><div class="stat-number">${offers}</div>`;
+
+      } catch (error) {
+        console.log('Metrics calculation skipped - view live data in sheets below');
+      }
+
+      updateLastSync();
+    }
+
+    // Initialize on load
+    window.addEventListener('load', () => {
+      updateMetrics();
+      // Refresh metrics every 2 minutes
+      setInterval(updateMetrics, 120000);
+    });
+  </script>
+</body>
+</html>
