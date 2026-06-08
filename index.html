@@ -85,6 +85,7 @@ tr.row-decision td{border-left:4px solid var(--purple);}
 tr.row-waiting td{border-left:4px solid var(--blue);}
 tr.row-followup td{border-left:4px solid var(--orange);}
 tr.row-applied td{border-left:4px solid #cbd5e1;}
+tr.row-network td{border-left:4px solid #86efac;}
 tr.row-rejected td{border-left:4px solid var(--red);}
 tr.row-archived td{border-left:4px solid #cbd5e1;opacity:0.6;}
 tr.row-watch td{border-left:4px solid var(--purple);background:var(--purple-lt)!important;}
@@ -97,6 +98,7 @@ tr.row-watch td{border-left:4px solid var(--purple);background:var(--purple-lt)!
 
 .status-badge{display:inline-block;border-radius:999px;padding:4px 9px;font-size:11px;font-weight:800;white-space:nowrap;}
 .s-interview{background:#dcfce7;color:#14532d;border:1px solid #bbf7d0;}
+.s-network{background:#f0fdf4;color:#166534;border:1px solid #86efac;}
 .s-waiting{background:#dbeafe;color:#1e3a8a;border:1px solid #bfdbfe;}
 .s-decision{background:#f5f3ff;color:#5b21b6;border:1px solid #ddd6fe;}
 .s-watch{background:#f5f3ff;color:#5b21b6;border:1px solid #a78bfa;}
@@ -415,12 +417,13 @@ function statusKind(o){
   if(s.includes('final decision')||s.includes('decision pending')) return 'decision';
   if(s.includes('waiting on company')||o.waitingOnCompany) return 'waiting';
   if(/interview|screen|recruiter call|hiring manager|panel|post recruiter|post hiring/.test(s)) return 'interview';
+  if(s.includes('network')||o.stage==='Networking') return 'network';
   if(s.includes('follow')) return 'followup';
   return 'applied';
 }
 function statusBadge(o){
   const k=statusKind(o);
-  const labels={watch:'🔮 Decision Watch',offer:'🎉 Offer',rejected:'✕ Rejected',decision:'⚡ Final Decision',waiting:'⏳ Waiting',interview:'🟢 Interview/Active',followup:'⚠ Follow-Up',applied:'Applied'};
+  const labels={watch:'🔮 Decision Watch',offer:'🎉 Offer',rejected:'✕ Rejected',decision:'⚡ Final Decision',waiting:'⏳ Waiting',interview:'🟢 Interview/Active',network:'🤝 Network',followup:'⚠ Follow-Up',applied:'Applied'};
   return `<span class="status-badge s-${k}">${labels[k]||'Applied'}</span>`;
 }
 function rowClass(o){ return 'row-'+statusKind(o); }
@@ -439,7 +442,7 @@ function renderStats(){
   const dueSoon=jobs.filter(j=>{ const d=daysUntil(j.followUpDate); return !j.waitingOnCompany&&d!==null&&d<=2; });
   const avgProb=active.length?Math.round(active.reduce((s,j)=>s+Number(j.probability||0),0)/active.length):0;
   const openTasks=openTaskCount();
-  const fmc=allJobs().filter(j=>String(j.fmcIndustryMatch||'').toLowerCase()==='yes').length;
+  
   document.getElementById('stats-row').innerHTML=`
     <div class="stat"><div class="stat-val">${jobs.length}</div><div class="stat-lbl">Total</div></div>
     <div class="stat"><div class="stat-val">${active.length}</div><div class="stat-lbl">Active</div></div>
@@ -448,7 +451,6 @@ function renderStats(){
     <div class="stat"><div class="stat-val amber">${dueSoon.length}</div><div class="stat-lbl">Follow-Up Due</div></div>
     <div class="stat"><div class="stat-val red">${openTasks}</div><div class="stat-lbl">Open Tasks</div></div>
     <div class="stat"><div class="stat-val">${avgProb}%</div><div class="stat-lbl">Avg Probability</div></div>
-    <div class="stat"><div class="stat-val">${fmc}</div><div class="stat-lbl">FMC Match</div></div>
   `;
   const badge=document.getElementById('task-count-badge');
   if(badge) badge.textContent=openTasks>0?openTasks:'';
