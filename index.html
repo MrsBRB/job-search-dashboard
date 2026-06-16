@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Executive Job Search CRM v7.2 — Brooke Benkert</title>
+<title>Executive Job Search CRM v7.3 — Brooke Benkert</title>
 <style>
 :root {
   --bg:#f4f6fb; --card:#fff; --text:#0f1923; --muted:#64748b; --border:#e2e8f0;
@@ -216,11 +216,12 @@ pre{white-space:pre-wrap;font-family:inherit;line-height:1.45;font-size:13px;bac
 
 <div class="header">
   <div class="header-left">
-    <h1>Executive Job Search CRM <span style="opacity:.6;font-weight:400;font-size:16px;">v7.1</span></h1>
+    <h1>Executive Job Search CRM <span style="opacity:.6;font-weight:400;font-size:16px;">v7.3</span></h1>
     <div class="sub">Brooke Benkert · Fleet &amp; Operations Executive · Director / VP · Remote-First</div>
     <div class="sub" style="margin-top:6px;opacity:.6;">16 applications · Task management · Home Depot confirmed · Jun 8 2026</div>
   </div>
   <div class="header-actions">
+    <button class="btn-white" onclick="exportHTML()" style="background:rgba(34,197,94,.25);border-color:rgba(134,239,172,.5);">💾 Export Updated File</button>
     <button class="btn-white" onclick="exportJSON()">↓ Export JSON</button>
     <button class="btn-white" onclick="clearTaskState()" title="Reset task state saved in this browser" style="font-size:11px;opacity:.7;">↺ Reset Tasks</button>
     <button class="btn-white" id="archive-toggle-btn" onclick="toggleArchived()">📦 Show Archived (2)</button>
@@ -320,7 +321,10 @@ pre{white-space:pre-wrap;font-family:inherit;line-height:1.45;font-size:13px;bac
 <!-- DRAWER -->
 <div class="drawer-bg" id="drawer-bg" onclick="closeDrawer()">
   <div class="drawer" onclick="event.stopPropagation()">
-    <button class="close-btn" onclick="closeDrawer()">✕ Close</button>
+    <div style="display:flex;gap:8px;float:right;">
+      <button class="close-btn" onclick="openEditModal(currentDetailId)" style="background:var(--blue);color:#fff;border-color:var(--blue);">✏ Edit</button>
+      <button class="close-btn" onclick="closeDrawer()">✕ Close</button>
+    </div>
     <div id="drawer-content"></div>
   </div>
 </div>
@@ -714,7 +718,9 @@ function filterTasks(f, btn){
 // ============================================================
 // DETAIL DRAWER
 // ============================================================
+let currentDetailId = null;
 function openDetail(id){
+  currentDetailId = id;
   const o=allJobs().find(j=>j.id===id);
   if(!o) return;
   const openT=(o.tasks||[]).filter(t=>!t.done);
@@ -1164,7 +1170,173 @@ function printOnePager(id){
     </style>
   </head><body>${el.outerHTML}
   <script>window.onload=function(){window.print();}<\/script>
-  </body></html>`);
+  
+<!-- EDIT MODAL -->
+<div id="edit-modal-bg" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,.5);z-index:200;align-items:center;justify-content:center;padding:16px;" onclick="if(event.target===this)closeEditModal()">
+  <div style="background:#fff;border-radius:16px;box-shadow:0 24px 64px rgba(0,0,0,.2);width:min(680px,96vw);max-height:90vh;overflow-y:auto;display:flex;flex-direction:column;">
+    <div style="padding:20px 24px 14px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;background:#fff;z-index:1;">
+      <div style="font-size:17px;font-weight:800;" id="edit-modal-title">Edit Entry</div>
+      <button onclick="closeEditModal()" style="background:#f1f5f9;border:1px solid var(--border);border-radius:8px;padding:6px 12px;font-size:13px;cursor:pointer;font-family:inherit;">✕ Close</button>
+    </div>
+    <div style="padding:20px 24px;flex:1;">
+      <input type="hidden" id="edit-job-id">
+
+      <!-- Core fields -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
+        <div>
+          <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);display:block;margin-bottom:5px;">Stage</label>
+          <select id="edit-stage" style="width:100%;border:1px solid var(--border);border-radius:8px;padding:8px 10px;font-family:inherit;font-size:13px;">
+            <option>Applied</option>
+            <option>Recruiter Screen</option>
+            <option>Post Recruiter Screen</option>
+            <option>Hiring Manager</option>
+            <option>Post Hiring Manager Interview</option>
+            <option>Panel</option>
+            <option>Final Decision</option>
+            <option>Networking</option>
+            <option>Rejected</option>
+          </select>
+        </div>
+        <div>
+          <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);display:block;margin-bottom:5px;">Priority</label>
+          <select id="edit-priority" style="width:100%;border:1px solid var(--border);border-radius:8px;padding:8px 10px;font-family:inherit;font-size:13px;">
+            <option>High</option>
+            <option>Medium</option>
+            <option>Low</option>
+          </select>
+        </div>
+        <div>
+          <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);display:block;margin-bottom:5px;">Follow-Up Date</label>
+          <input type="date" id="edit-followup" style="width:100%;border:1px solid var(--border);border-radius:8px;padding:8px 10px;font-family:inherit;font-size:13px;">
+        </div>
+        <div>
+          <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);display:block;margin-bottom:5px;">Probability %</label>
+          <input type="number" id="edit-probability" min="0" max="100" style="width:100%;border:1px solid var(--border);border-radius:8px;padding:8px 10px;font-family:inherit;font-size:13px;">
+        </div>
+        <div>
+          <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);display:block;margin-bottom:5px;">Contact Name</label>
+          <input type="text" id="edit-contact" style="width:100%;border:1px solid var(--border);border-radius:8px;padding:8px 10px;font-family:inherit;font-size:13px;">
+        </div>
+        <div>
+          <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);display:block;margin-bottom:5px;">Contact Phone</label>
+          <input type="text" id="edit-contactPhone" style="width:100%;border:1px solid var(--border);border-radius:8px;padding:8px 10px;font-family:inherit;font-size:13px;">
+        </div>
+      </div>
+
+      <div style="margin-bottom:14px;">
+        <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);display:block;margin-bottom:5px;">Status / Current Situation</label>
+        <input type="text" id="edit-status" style="width:100%;border:1px solid var(--border);border-radius:8px;padding:8px 10px;font-family:inherit;font-size:13px;">
+      </div>
+
+      <div style="margin-bottom:14px;">
+        <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);display:block;margin-bottom:5px;">Next Step</label>
+        <input type="text" id="edit-nextStep" style="width:100%;border:1px solid var(--border);border-radius:8px;padding:8px 10px;font-family:inherit;font-size:13px;">
+      </div>
+
+      <!-- Decision Watch -->
+      <div style="background:var(--purple-lt);border:1px solid #ddd6fe;border-radius:10px;padding:14px;margin-bottom:14px;">
+        <label style="display:flex;align-items:center;gap:8px;font-weight:700;font-size:13px;color:var(--purple);cursor:pointer;margin-bottom:8px;">
+          <input type="checkbox" id="edit-decisionWatch" style="width:16px;height:16px;cursor:pointer;accent-color:var(--purple);">
+          🔮 Decision Watch
+        </label>
+        <div id="edit-dw-fields" style="display:none;">
+          <div style="margin-bottom:8px;">
+            <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);display:block;margin-bottom:4px;">Decision Watch Reason</label>
+            <input type="text" id="edit-dwReason" style="width:100%;border:1px solid #ddd6fe;border-radius:8px;padding:7px 10px;font-family:inherit;font-size:13px;">
+          </div>
+          <div>
+            <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);display:block;margin-bottom:4px;">Expected Update Date</label>
+            <input type="date" id="edit-expectedDate" style="border:1px solid #ddd6fe;border-radius:8px;padding:7px 10px;font-family:inherit;font-size:13px;">
+          </div>
+        </div>
+      </div>
+
+      <!-- Waiting on Company -->
+      <div style="background:var(--blue-lt);border:1px solid #bfdbfe;border-radius:10px;padding:14px;margin-bottom:14px;">
+        <label style="display:flex;align-items:center;gap:8px;font-weight:700;font-size:13px;color:var(--blue);cursor:pointer;margin-bottom:8px;">
+          <input type="checkbox" id="edit-waiting" style="width:16px;height:16px;cursor:pointer;accent-color:var(--blue);">
+          ⏳ Waiting on Company
+        </label>
+        <div id="edit-wait-fields" style="display:none;">
+          <div style="margin-bottom:8px;">
+            <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);display:block;margin-bottom:4px;">Waiting Reason</label>
+            <input type="text" id="edit-waitReason" style="width:100%;border:1px solid #bfdbfe;border-radius:8px;padding:7px 10px;font-family:inherit;font-size:13px;">
+          </div>
+          <div>
+            <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);display:block;margin-bottom:4px;">Expected Update Date</label>
+            <input type="date" id="edit-waitDate" style="border:1px solid #bfdbfe;border-radius:8px;padding:7px 10px;font-family:inherit;font-size:13px;">
+          </div>
+        </div>
+      </div>
+
+      <!-- Log Communication -->
+      <div style="border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:14px;background:#fafbfc;">
+        <div style="font-size:13px;font-weight:700;margin-bottom:10px;">📝 Log Communication</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
+          <div>
+            <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);display:block;margin-bottom:4px;">Date</label>
+            <input type="date" id="edit-comm-date" style="width:100%;border:1px solid var(--border);border-radius:8px;padding:7px 10px;font-family:inherit;font-size:13px;">
+          </div>
+          <div>
+            <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);display:block;margin-bottom:4px;">Type</label>
+            <select id="edit-comm-type" style="width:100%;border:1px solid var(--border);border-radius:8px;padding:7px 10px;font-family:inherit;font-size:13px;">
+              <option>Recruiter Call</option>
+              <option>Recruiter Update</option>
+              <option>Recruiter Screen</option>
+              <option>HM Interview</option>
+              <option>Panel Interview</option>
+              <option>Follow-Up Sent</option>
+              <option>LinkedIn</option>
+              <option>Email</option>
+              <option>Rejection</option>
+              <option>Offer</option>
+              <option>Networking</option>
+              <option>Other</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);display:block;margin-bottom:4px;">Note</label>
+          <textarea id="edit-comm-note" rows="2" style="width:100%;border:1px solid var(--border);border-radius:8px;padding:7px 10px;font-family:inherit;font-size:13px;resize:vertical;" placeholder="What happened?"></textarea>
+        </div>
+      </div>
+
+      <!-- Add Task -->
+      <div style="border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:14px;background:#fafbfc;">
+        <div style="font-size:13px;font-weight:700;margin-bottom:10px;">✅ Add Task</div>
+        <div style="margin-bottom:8px;">
+          <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);display:block;margin-bottom:4px;">Task</label>
+          <input type="text" id="edit-task-text" style="width:100%;border:1px solid var(--border);border-radius:8px;padding:7px 10px;font-family:inherit;font-size:13px;" placeholder="What needs to happen?">
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+          <div>
+            <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);display:block;margin-bottom:4px;">Due Date</label>
+            <input type="date" id="edit-task-due" style="width:100%;border:1px solid var(--border);border-radius:8px;padding:7px 10px;font-family:inherit;font-size:13px;">
+          </div>
+          <div>
+            <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);display:block;margin-bottom:4px;">Category</label>
+            <select id="edit-task-cat" style="width:100%;border:1px solid var(--border);border-radius:8px;padding:7px 10px;font-family:inherit;font-size:13px;">
+              <option>Follow-Up</option>
+              <option>Outreach</option>
+              <option>Resume</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer buttons -->
+    <div style="padding:14px 24px;border-top:1px solid var(--border);background:#f8fafc;border-radius:0 0 16px 16px;display:flex;gap:10px;justify-content:space-between;position:sticky;bottom:0;">
+      <button onclick="archiveFromEdit()" style="background:var(--red-lt);color:var(--red);border:1px solid #fecaca;border-radius:10px;padding:9px 16px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;">Archive Entry</button>
+      <div style="display:flex;gap:10px;">
+        <button onclick="closeEditModal()" style="background:#f1f5f9;border:1px solid var(--border);border-radius:10px;padding:9px 16px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;">Cancel</button>
+        <button onclick="saveEdit()" style="background:var(--blue);color:#fff;border:none;border-radius:10px;padding:9px 18px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;">💾 Save Changes</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body></html>`);
   printWin.document.close();
 }
 
@@ -1172,6 +1344,191 @@ function viewAllOnePagers(){
   closeOnePagerPicker();
   switchTab('onepagers', document.getElementById('tab-btn-onepagers'));
   setTimeout(()=>{ window.scrollTo({top:0,behavior:'smooth'}); }, 120);
+}
+
+
+// ============================================================
+// EXPORT UPDATED HTML
+// ============================================================
+function exportHTML(){
+  try {
+    // Re-encode current live data
+    const liveData = {active: jobs, archived: archivedJobs};
+    const newB64 = btoa(unescape(encodeURIComponent(JSON.stringify(liveData))));
+    
+    // Get the current page HTML and swap the data
+    const src = document.documentElement.outerHTML;
+    const marker = 'const INITIAL_B64 = "';
+    const start = src.indexOf(marker);
+    if(start === -1){ alert('Could not find data marker in HTML.'); return; }
+    const end = src.indexOf('";
+', start + marker.length) + 3;
+    const newSrc = src.slice(0, start) + marker + newB64 + '";
+' + src.slice(end);
+    
+    const blob = new Blob([newSrc], {type: 'text/html'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'executive_job_search_crm_' + TODAY + '.html';
+    a.click();
+    URL.revokeObjectURL(url);
+  } catch(e) {
+    alert('Export failed: ' + e.message);
+    console.error(e);
+  }
+}
+
+// ============================================================
+// EDIT MODAL
+// ============================================================
+function openEditModal(id) {
+  const o = allJobs().find(j => j.id === id);
+  if(!o) return;
+  
+  document.getElementById('edit-job-id').value = id;
+  document.getElementById('edit-modal-title').textContent = esc(o.company) + ' — Edit';
+  document.getElementById('edit-stage').value = o.stage || 'Applied';
+  document.getElementById('edit-priority').value = o.priority || 'High';
+  document.getElementById('edit-followup').value = o.followUpDate || '';
+  document.getElementById('edit-probability').value = o.probability || 0;
+  document.getElementById('edit-contact').value = o.contact || '';
+  document.getElementById('edit-contactPhone').value = o.contactPhone || '';
+  document.getElementById('edit-status').value = o.status || '';
+  document.getElementById('edit-nextStep').value = o.nextStep || '';
+  
+  const dw = !!o.decisionWatch;
+  document.getElementById('edit-decisionWatch').checked = dw;
+  document.getElementById('edit-dw-fields').style.display = dw ? 'block' : 'none';
+  document.getElementById('edit-dwReason').value = o.decisionWatchReason || '';
+  document.getElementById('edit-expectedDate').value = o.expectedUpdateDate || '';
+  
+  const woc = !!o.waitingOnCompany;
+  document.getElementById('edit-waiting').checked = woc;
+  document.getElementById('edit-wait-fields').style.display = woc ? 'block' : 'none';
+  document.getElementById('edit-waitReason').value = o.waitingReason || '';
+  document.getElementById('edit-waitDate').value = o.expectedUpdateDate || '';
+  
+  // Reset comm / task fields
+  document.getElementById('edit-comm-date').value = TODAY;
+  document.getElementById('edit-comm-type').value = 'Recruiter Update';
+  document.getElementById('edit-comm-note').value = '';
+  document.getElementById('edit-task-text').value = '';
+  document.getElementById('edit-task-due').value = '';
+  document.getElementById('edit-task-cat').value = 'Follow-Up';
+  
+  const modal = document.getElementById('edit-modal-bg');
+  modal.style.display = 'flex';
+}
+
+function closeEditModal() {
+  document.getElementById('edit-modal-bg').style.display = 'none';
+}
+
+document.getElementById('edit-decisionWatch').addEventListener('change', function(){
+  document.getElementById('edit-dw-fields').style.display = this.checked ? 'block' : 'none';
+});
+document.getElementById('edit-waiting').addEventListener('change', function(){
+  document.getElementById('edit-wait-fields').style.display = this.checked ? 'block' : 'none';
+});
+
+function saveEdit() {
+  const id = document.getElementById('edit-job-id').value;
+  const arr = jobs.find(j => j.id === id) ? jobs : archivedJobs;
+  const o = arr.find(j => j.id === id);
+  if(!o) { alert('Entry not found.'); return; }
+  
+  o.stage = document.getElementById('edit-stage').value;
+  o.priority = document.getElementById('edit-priority').value;
+  o.followUpDate = document.getElementById('edit-followup').value;
+  o.probability = parseInt(document.getElementById('edit-probability').value) || 0;
+  o.contact = document.getElementById('edit-contact').value;
+  o.contactPhone = document.getElementById('edit-contactPhone').value;
+  o.status = document.getElementById('edit-status').value;
+  o.nextStep = document.getElementById('edit-nextStep').value;
+  o.lastContactDate = TODAY;
+  
+  o.decisionWatch = document.getElementById('edit-decisionWatch').checked;
+  if(o.decisionWatch) {
+    o.decisionWatchReason = document.getElementById('edit-dwReason').value;
+    o.expectedUpdateDate = document.getElementById('edit-expectedDate').value;
+  }
+  
+  o.waitingOnCompany = document.getElementById('edit-waiting').checked;
+  if(o.waitingOnCompany) {
+    o.waitingReason = document.getElementById('edit-waitReason').value;
+    o.expectedUpdateDate = document.getElementById('edit-waitDate').value;
+  }
+  
+  // Log communication if note filled
+  const commNote = document.getElementById('edit-comm-note').value.trim();
+  if(commNote) {
+    if(!o.communications) o.communications = [];
+    if(!o.timeline) o.timeline = [];
+    const comm = {
+      date: document.getElementById('edit-comm-date').value || TODAY,
+      type: document.getElementById('edit-comm-type').value,
+      note: commNote
+    };
+    o.communications.push(comm);
+    o.timeline.push({date: comm.date, event: comm.type + ': ' + commNote.slice(0,80)});
+  }
+  
+  // Add task if filled
+  const taskText = document.getElementById('edit-task-text').value.trim();
+  if(taskText) {
+    if(!o.tasks) o.tasks = [];
+    o.tasks.push({
+      id: 'task-' + Date.now(),
+      task: taskText,
+      done: false,
+      due: document.getElementById('edit-task-due').value || '',
+      category: document.getElementById('edit-task-cat').value,
+      priority: o.priority || 'High'
+    });
+    o.taskCount = o.tasks.length;
+    o.taskDone = o.tasks.filter(t=>t.done).length;
+  }
+  
+  saveTaskState();
+  closeEditModal();
+  
+  // Refresh panels
+  renderStats();
+  renderPanels();
+  renderTable();
+  
+  // Re-open drawer with updated data
+  openDetail(id);
+  
+  // Flash autosave indicator
+  const ind = document.getElementById('autosave-ind');
+  if(ind){ ind.style.opacity='1'; setTimeout(()=>{ ind.style.opacity='0'; }, 1800); }
+}
+
+function archiveFromEdit() {
+  const id = document.getElementById('edit-job-id').value;
+  if(!confirm('Archive this entry? It will be removed from active pipeline.')) return;
+  
+  const idx = jobs.findIndex(j => j.id === id);
+  if(idx >= 0) {
+    const j = jobs.splice(idx, 1)[0];
+    j.stage = 'Rejected';
+    j.status = 'Archived — ' + TODAY;
+    j.decisionWatch = false;
+    j.waitingOnCompany = false;
+    j.healthScore = 0;
+    j.probability = 0;
+    archivedJobs.push(j);
+  }
+  
+  closeEditModal();
+  closeDrawer();
+  renderStats();
+  renderPanels();
+  renderTable();
+  const btn = document.getElementById('archive-toggle-btn');
+  if(btn) btn.textContent = showArchived ? ('📦 Hide Archived (' + archivedJobs.length + ')') : ('📦 Show Archived (' + archivedJobs.length + ')');
 }
 
 // Close modal on backdrop click
